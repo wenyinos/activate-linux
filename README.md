@@ -106,8 +106,7 @@ gmake
 Use `pkg_add` to install build tools and runtime dependencies:
 
 ```console
-doas pkg_add gmake pkgconf cairo pango wayland wayland-protocols \
-libX11 libXext libXfixes libXinerama libXrandr libXi libXt libconfig
+doas pkg_add gmake pkgconf cairo pango wayland wayland-protocols libconfig
 ```
 
 ### Minimal dependencies (X11-only build)
@@ -115,8 +114,7 @@ libX11 libXext libXfixes libXinerama libXrandr libXi libXt libconfig
 If you only need the X11 backend, install:
 
 ```console
-doas pkg_add gmake pkgconf cairo pango \
-libX11 libXext libXfixes libXinerama libXrandr libXi libXt libconfig
+doas pkg_add gmake pkgconf cairo pango libconfig
 ```
 
 Build with X11 only:
