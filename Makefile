@@ -161,6 +161,7 @@ appimage: $(BINARY)
 	curl -#L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 	chmod +x linuxdeploy-x86_64.AppImage
 	./linuxdeploy-x86_64.AppImage --appdir AppDir --executable ./$(BINARY) --desktop-file res/activate-linux.desktop --icon-file res/activate-linux.png --output appimage
+	mv Activate_Linux-*.AppImage $(BINARY)-x86_64.AppImage
 
 clean:
 	@$(<<) "  RM\t" "$(BINARY)$(<<objects>>:obj/%=\\n\\t + %)"
