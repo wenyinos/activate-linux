@@ -51,6 +51,7 @@ make
 ### Dependencies
 This project depends on:
 - [`libcairo2-dev`](https://cairographics.org)
+- [`libpango1.0-dev`](https://www.gtk.org/docs/architecture/pango)
 - [`libxi-dev`](https://gitlab.freedesktop.org/xorg/lib/libxi)
 - [`libx11-dev`](https://gitlab.freedesktop.org/xorg/lib/libx11)
 - `x11proto-core-dev`
