@@ -35,6 +35,8 @@ jobs:
             make CC=gcc
             echo "--- runtime dependencies (ldd) ---"
             ldd ./activate-linux
+            echo "--- smoke check ---"
+            ./activate-linux -h >/dev/null
           '
 
       - name: Package
@@ -45,10 +47,6 @@ jobs:
             exit 1
           fi
           NAME="activate-linux-${VERSION}-linux-${{ matrix.arch }}"
-          if ! ./activate-linux -h >/dev/null 2>&1; then
-            echo "smoke check failed"
-            exit 1
-          fi
           mkdir "$NAME"
           cp activate-linux activate-linux.1 LICENSE.md README.md ARGS.md "$NAME/"
           cp res/activate-linux.desktop res/activate-linux.png "$NAME/"
