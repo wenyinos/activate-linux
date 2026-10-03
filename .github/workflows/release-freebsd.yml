@@ -88,10 +88,10 @@ jobs:
             }
             EOF
             cat > plist <<EOF
-            bin/activate-linux
-            share/man/man1/activate-linux.1
-            share/applications/activate-linux.desktop
-            share/icons/hicolor/128x128/apps/activate-linux.png
+            /usr/local/bin/activate-linux
+            /usr/local/share/man/man1/activate-linux.1
+            /usr/local/share/applications/activate-linux.desktop
+            /usr/local/share/icons/hicolor/128x128/apps/activate-linux.png
             EOF
             pkg create -M manifest.ucl -p plist -r stage -o .
             mv "activate-linux-${VERSION}.pkg" "activate-linux-${VERSION}-freebsd-${{ matrix.arch }}.pkg"
