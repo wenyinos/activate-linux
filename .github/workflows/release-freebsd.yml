@@ -69,6 +69,7 @@ jobs:
             name: activate-linux
             version: "$VERSION"
             origin: misc/activate-linux
+            prefix: /usr/local
             comment: 'The "Activate Windows" watermark ported to Linux'
             desc: 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)'
             www: https://github.com/wenyinos/activate-linux
