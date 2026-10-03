@@ -26,6 +26,9 @@ typedef struct options_t {
   bool gamescope_overlay;
   bool daemonize;
   bool kill_running;
+#ifdef __linux__
+  bool osrelease;
+#endif
 #ifdef X11
   bool force_xshape;
   bool x11_draggable;

@@ -71,6 +71,10 @@ Options options = {
 
   // kill running instance of activate-linux
   .kill_running = false,
+#ifdef __linux__
+  // read /etc/os-release for exact Distro
+  .osrelease = false,
+#endif
 #ifdef X11
       .force_xshape = false,
       .x11_draggable = false,
@@ -116,6 +120,9 @@ void parse_options(int argc, char *const argv[]) {
 #ifdef WAYLAND
     {"wayland-draggable",   no_argument,       NULL, 'Y'},
 #endif
+#ifdef __linux__
+    {"os-release",          no_argument,       NULL, 'o'},
+#endif
 #ifdef X11
     {"force-xshape",           no_argument,       NULL, 'S'},
     {"x11-draggable",          no_argument,       NULL, 'M'},
@@ -128,9 +135,13 @@ void parse_options(int argc, char *const argv[]) {
   };
 
   int opt;
+
   while ((opt = getopt_long(argc, argv, "t:m:p:f:bic:x:y:s:wdKvlqGh"
 #ifdef WAYLAND
       "Y"
+#endif
+#ifdef __linux__
+      "o"
 #endif
 #ifdef X11
       "S"
@@ -162,6 +173,9 @@ void parse_options(int argc, char *const argv[]) {
       case 'G': options.gamescope_overlay = true; break;
 #ifdef WAYLAND
       case 'Y': options.wayland_draggable = true; break;
+#endif
+#ifdef __linux__
+      case 'o': options.osrelease = true; i18n_set_info("linux"); break;
 #endif
 #ifdef LIBCONFIG
       case 'C':
@@ -226,6 +240,7 @@ void print_help(const char *const file_name) {
   HELP("-m, --text-message message\tSet message text (string)");
   HELP("-p, --text-preset preset\tSelect predefined preset (conflicts "
       "-t/-m)");
+  HELP("-o, --os-release\t\tUse Distro name from /etc/os-release");
   END();
 
   SECTION("Appearance", "");

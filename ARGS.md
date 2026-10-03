@@ -32,6 +32,12 @@ Preset notes:
 - `linux` resolves to current distro name/version at runtime (for example `Fedora 43`).
 - `bsd` resolves to current BSD system/version at runtime (for example `FreeBSD 14.1`, `OpenBSD 7.6`).
 
+### Use Distro name
+```console
+./activate-linux -o
+./activate-linux --os-release
+```
+
 ## Appearance
 
 ### Custom Font
@@ -89,6 +95,19 @@ By default, the overlay is anchored in the bottom-right corner. Position can be 
 ```console
 ./activate-linux -w
 ./activate-linux --bypass-compositor
+```
+
+### Run via SystemD
+```
+sudo cp activate-linux /usr/bin/.
+sudo cp activate-linux.service /etc/systemd/user/.
+sudo systemctl --user --now enable activate-linux.service
+```
+
+Add optional arguments to `~/.config/activate-linux.env` like this:
+
+```
+ARGS=-t "Main Text" --gamescope --text-font "Segoe UI"
 ```
 
 ### Run as daemon
