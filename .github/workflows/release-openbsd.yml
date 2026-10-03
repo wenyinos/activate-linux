@@ -48,11 +48,11 @@ jobs:
             VERSION="$(cat pkg-version.txt)"
             gmake BINARY=activate-linux
             ./activate-linux -h >/dev/null
-            mkdir -p stage/bin stage/share/man/man1 stage/share/applications stage/share/icons/hicolor/128x128/apps
-            cp activate-linux stage/bin/
-            cp activate-linux.1 stage/share/man/man1/
-            cp res/activate-linux.desktop stage/share/applications/
-            cp res/activate-linux.png stage/share/icons/hicolor/128x128/apps/
+            mkdir -p stage/usr/local/bin stage/usr/local/share/man/man1 stage/usr/local/share/applications stage/usr/local/share/icons/hicolor/128x128/apps
+            cp activate-linux stage/usr/local/bin/
+            cp activate-linux.1 stage/usr/local/share/man/man1/
+            cp res/activate-linux.desktop stage/usr/local/share/applications/
+            cp res/activate-linux.png stage/usr/local/share/icons/hicolor/128x128/apps/
             {
               printf 'bin/activate-linux\n'
               printf 'share/man/man1/activate-linux.1\n'
@@ -60,8 +60,10 @@ jobs:
               printf 'share/icons/hicolor/128x128/apps/activate-linux.png\n'
             } > plist
             for p in cairo pango wayland wayland-protocols libconfig; do
-              pp="$(pkg_info -Q pkgpath "$p")"
-              printf '@depend %s:*:%s-*\n' "$pp" "$p" >> plist
+              pp="$(sed -n 's/^@comment pkgpath=//p' /var/db/pkg/"$p"-[0-9]*/+CONTENTS 2>/dev/null | head -1)"
+              if [ -n "$pp" ]; then
+                printf '@depend %s:*:%s-*\n' "$pp" "$p" >> plist
+              fi
             done
             printf 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)\n' > desc
             pkg_create -A "$(uname -m)" -B stage -p /usr/local -D COMMENT='The "Activate Windows" watermark ported to Linux' -d desc -f plist "activate-linux-${VERSION}"
