@@ -19,6 +19,24 @@ The "Activate Windows" watermark ported to Linux with cairo in C
   - BSD preset now shows runtime system/version (for example `FreeBSD 14.1`, `OpenBSD 7.6`).
 - Expanded build-from-source guides for Linux, FreeBSD, OpenBSD, Fedora/RHEL/CentOS, Windows (MSYS2), and more.
 
+## Prebuilt Packages
+
+Every [release](https://github.com/wenyinos/activate-linux/releases) ships artifacts for `x86_64` and `aarch64`:
+
+- `activate-linux-x86_64.AppImage` / `activate-linux-aarch64.AppImage` — self-contained, just `chmod +x` and run. Requires FUSE (`libfuse2`); if FUSE is unavailable, run with `--appimage-extract-and-run`.
+- `activate-linux-<version>-linux-x86_64.tar.gz` / `activate-linux-<version>-linux-aarch64.tar.gz` — portable tarball (binary, man page, desktop file, icon, docs). Unpack and run `./activate-linux` (add `-Y` or `-M` to enable dragging).
+
+### Tarball minimum system requirements
+
+Tarballs are built on a RHEL 8 baseline (glibc 2.28) and run on any newer distribution (RHEL 8+, Ubuntu 20.04+, Fedora, Debian 11+, ...):
+
+- glibc ≥ 2.28
+- cairo (`libcairo.so.2`) ≥ 1.15
+- pango + pangocairo ≥ 1.42 (pulls in glib/fontconfig/freetype/harfbuzz)
+- Wayland sessions: `libwayland-client.so.0` (≥ 1.17) with a wlr-layer-shell capable compositor
+- X11 sessions: `libX11` ≥ 1.6.8, `libXext` / `libXfixes` / `libXinerama` / `libXrandr`
+- `libconfig.so.9` (RHEL/CentOS: from EPEL; Ubuntu/Debian: `libconfig9`)
+
 ## Building
 Note that the executable's name depends on the target platform.
 You can use `make install` to install and `make uninstall` to remove it.
