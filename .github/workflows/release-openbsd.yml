@@ -1,0 +1,86 @@
+name: Release OpenBSD package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+          - arch: arm64
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')"
+          fi
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9A-Za-z._-]+$'; then
+            echo "invalid version string"
+            exit 1
+          fi
+          echo "$VERSION" > pkg-version.txt
+
+      - name: Build package in OpenBSD VM
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.7'
+          arch: ${{ matrix.arch }}
+          sync: rsync
+          prepare: |
+            pkg_add gmake pkgconf gawk cairo pango wayland wayland-protocols libconfig
+          run: |
+            set -e
+            VERSION="$(cat pkg-version.txt)"
+            gmake BINARY=activate-linux
+            ./activate-linux -h >/dev/null
+            mkdir -p stage/bin stage/share/man/man1 stage/share/applications stage/share/icons/hicolor/128x128/apps
+            cp activate-linux stage/bin/
+            cp activate-linux.1 stage/share/man/man1/
+            cp res/activate-linux.desktop stage/share/applications/
+            cp res/activate-linux.png stage/share/icons/hicolor/128x128/apps/
+            {
+              printf 'bin/activate-linux\n'
+              printf 'share/man/man1/activate-linux.1\n'
+              printf 'share/applications/activate-linux.desktop\n'
+              printf 'share/icons/hicolor/128x128/apps/activate-linux.png\n'
+            } > plist
+            for p in cairo pango wayland wayland-protocols libconfig; do
+              pp="$(pkg_info -Q pkgpath "$p")"
+              printf '@depend %s:*:%s-*\n' "$pp" "$p" >> plist
+            done
+            printf 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)\n' > desc
+            pkg_create -A "$(uname -m)" -B stage -c 'The "Activate Windows" watermark ported to Linux' -d desc -f plist "activate-linux-${VERSION}"
+            mv "activate-linux-${VERSION}.tgz" "activate-linux-${VERSION}-openbsd-${{ matrix.arch }}.tgz"
+            pkg_add "./activate-linux-${VERSION}-openbsd-${{ matrix.arch }}.tgz"
+            activate-linux -h >/dev/null
+            pkg_delete "activate-linux-${VERSION}"
+            echo "=== OpenBSD package built, installed, smoke-tested and removed ==="
+
+      - name: Upload artifact (manual test runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: openbsd-${{ matrix.arch }}
+          path: activate-linux-*-openbsd-*.tgz
+
+      - name: Upload to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG_NAME" activate-linux-*-openbsd-*.tgz --clobber

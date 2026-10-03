@@ -10,6 +10,11 @@
 #include <linux/input-event-codes.h>
 #elif defined(__FreeBSD__)
 #include <dev/evdev/input-event-codes.h>
+#else
+/* OpenBSD and other platforms without a Linux input-codes header */
+#ifndef BTN_LEFT
+#define BTN_LEFT 0x110
+#endif
 #endif
 #include <time.h>
 #include <unistd.h>

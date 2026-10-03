@@ -49,7 +49,9 @@ endif
 ifeq ($(filter wayland,$(<<backends>>)),wayland)
 	PKGS += wayland-client
 	CFLAGS += -DWAYLAND
+ifneq ($(shell uname -s),OpenBSD)
 	LDFLAGS += -lrt
+endif
 endif
 ifneq ($(filter wayland x11,$(<<backends>>)),)
 	PKGS += cairo pango pangocairo
