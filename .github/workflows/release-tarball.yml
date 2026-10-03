@@ -1,0 +1,68 @@
+name: Release Tarball
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tarball:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (RHEL 8 baseline container)
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work quay.io/rockylinux/rockylinux:8 bash -c '
+            set -e
+            dnf install -y -q epel-release
+            dnf install -y -q --enablerepo=powertools \
+              gcc make pkgconfig kernel-headers \
+              cairo-devel pango-devel wayland-devel wayland-protocols-devel \
+              libconfig-devel \
+              libX11-devel libXext-devel libXfixes-devel libXinerama-devel libXrandr-devel
+            make CC=gcc
+            echo "--- runtime dependencies (ldd) ---"
+            ldd ./activate-linux
+          '
+
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9A-Za-z._-]+$'; then
+            echo "invalid version string"
+            exit 1
+          fi
+          NAME="activate-linux-${VERSION}-linux-${{ matrix.arch }}"
+          if ! ./activate-linux -h >/dev/null 2>&1; then
+            echo "smoke check failed"
+            exit 1
+          fi
+          mkdir "$NAME"
+          cp activate-linux activate-linux.1 LICENSE.md README.md ARGS.md "$NAME/"
+          cp res/activate-linux.desktop res/activate-linux.png "$NAME/"
+          tar -czf "${NAME}.tar.gz" "$NAME"
+
+      - name: Upload artifact (manual test runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball-${{ matrix.arch }}
+          path: activate-linux-*-linux-*.tar.gz
+
+      - name: Upload to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" activate-linux-*-linux-*.tar.gz --clobber
