@@ -61,6 +61,7 @@ jobs:
             } > plist
             for p in cairo pango wayland wayland-protocols libconfig; do
               pp="$(sed -n 's/^@comment pkgpath=//p' /var/db/pkg/"$p"-[0-9]*/+CONTENTS 2>/dev/null | head -1)"
+              pp="${pp%% *}"
               if [ -n "$pp" ]; then
                 printf '@depend %s:*:%s-*\n' "$pp" "$p" >> plist
               fi
