@@ -73,10 +73,11 @@ jobs:
             done
             printf 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)\n' > desc
             pkg_create -A "$(uname -m)" -B stage -p /usr/local -D COMMENT='The "Activate Windows" watermark ported to Linux' -D MAINTAINER='wenyinos@users.noreply.github.com' -d desc -f plist "activate-linux-${VERSION}"
-            mv "activate-linux-${VERSION}" "activate-linux-${VERSION}-openbsd-${{ matrix.arch }}.tgz"
-            pkg_add "./activate-linux-${VERSION}-openbsd-${{ matrix.arch }}.tgz"
+            mv "activate-linux-${VERSION}" "activate-linux-${VERSION}.tgz"
+            pkg_add "./activate-linux-${VERSION}.tgz" || pkg_add "$PWD/activate-linux-${VERSION}.tgz"
             activate-linux -h >/dev/null
             pkg_delete "activate-linux-${VERSION}"
+            mv "activate-linux-${VERSION}.tgz" "activate-linux-${VERSION}-openbsd-${{ matrix.arch }}.tgz"
             echo "=== OpenBSD package built, installed, smoke-tested and removed ==="
 
       - name: Upload artifact (manual test runs)
