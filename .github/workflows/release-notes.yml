@@ -1,0 +1,45 @@
+name: Release Notes Enhance
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  enhance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Append platform support matrix to release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName -q '.[0].tagName')"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "target release: $TAG"
+          if ! printf '%s' "$TAG" | grep -Eq '^[0-9A-Za-z._-]+$'; then
+            echo "invalid tag string"
+            exit 1
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body -q .body > /tmp/notes.md
+          if grep -q 'platform-matrix' /tmp/notes.md; then
+            echo "platform matrix already present, nothing to do"
+            exit 0
+          fi
+          printf '\n' >> /tmp/notes.md
+          cat >> /tmp/notes.md <<'EOF'
+          <!-- platform-matrix -->
+          ### 预编译产物平台支持
+
+          - **AppImage**（x86_64 / aarch64）：Linux 通用，需 FUSE（无 FUSE 时用 `--appimage-extract-and-run`）
+          - **tar.gz**（x86_64 / aarch64）：Linux，glibc ≥ 2.28（RHEL 8+、Ubuntu 20.04+ 等）
+          - **.pkg**（amd64 / aarch64）：FreeBSD 14+，`pkg install ./activate-linux-<版本>-freebsd-<架构>.pkg`（依赖自动拉取）
+          - **.tgz**（amd64 / arm64）：OpenBSD 7.7+，`pkg_add -D unsigned ./activate-linux-<版本>-openbsd-<架构>.tgz`（本地包未签名，需 `-D unsigned`）
+          EOF
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file /tmp/notes.md

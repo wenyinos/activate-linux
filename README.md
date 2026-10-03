@@ -26,7 +26,7 @@ Every [release](https://github.com/wenyinos/activate-linux/releases) ships artif
 - `activate-linux-x86_64.AppImage` / `activate-linux-aarch64.AppImage` — self-contained, just `chmod +x` and run. Requires FUSE (`libfuse2`); if FUSE is unavailable, run with `--appimage-extract-and-run`.
 - `activate-linux-<version>-linux-x86_64.tar.gz` / `activate-linux-<version>-linux-aarch64.tar.gz` — portable tarball (binary, man page, desktop file, icon, docs). Unpack and run `./activate-linux` (add `-Y` or `-M` to enable dragging).
 - `activate-linux-<version>-freebsd-amd64.pkg` / `activate-linux-<version>-freebsd-aarch64.pkg` — FreeBSD 14+ packages. Install with `pkg install ./activate-linux-<version>-freebsd-amd64.pkg`; `pkg` pulls in the required cairo/pango/wayland/X11/libconfig dependencies automatically.
-- `activate-linux-<version>-openbsd-amd64.tgz` / `activate-linux-<version>-openbsd-arm64.tgz` — OpenBSD 7.7+ packages. Install with `pkg_add ./activate-linux-<version>-openbsd-amd64.tgz`; `pkg_add` resolves the cairo/pango/wayland/libconfig dependencies automatically.
+- `activate-linux-<version>-openbsd-amd64.tgz` / `activate-linux-<version>-openbsd-arm64.tgz` — OpenBSD 7.7+ packages. The package is unsigned, so install with `pkg_add -D unsigned ./activate-linux-<version>-openbsd-amd64.tgz`; `pkg_add` resolves the cairo/pango/wayland/libconfig dependencies automatically.
 
 ### Tarball minimum system requirements
 
