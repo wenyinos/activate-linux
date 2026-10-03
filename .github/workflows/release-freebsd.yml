@@ -43,6 +43,18 @@ jobs:
           sync: rsync
           prepare: |
             pkg install -y gmake pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig bzip2
+            cat > /usr/local/libdata/pkgconfig/bzip2.pc <<'EOF'
+            prefix=/usr/local
+            exec_prefix=${prefix}
+            libdir=${exec_prefix}/lib
+            includedir=${prefix}/include
+
+            Name: bzip2
+            Description: bzip2 compression library (pkg-config shim, FreeBSD package ships no .pc file)
+            Version: 1.0.8
+            Libs: -L${libdir} -lbz2
+            Cflags: -I${includedir}
+            EOF
           run: |
             set -e
             VERSION="$(cat pkg-version.txt)"
