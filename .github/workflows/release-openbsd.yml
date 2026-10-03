@@ -60,10 +60,15 @@ jobs:
               printf 'share/icons/hicolor/128x128/apps/activate-linux.png\n'
             } > plist
             for p in cairo pango wayland wayland-protocols libconfig; do
-              pp="$(sed -n 's/^@comment pkgpath=//p' /var/db/pkg/"$p"-[0-9]*/+CONTENTS 2>/dev/null | head -1)"
+              d="$(ls -d /var/db/pkg/"$p"-[0-9]* 2>/dev/null | head -1)"
+              if [ -z "$d" ]; then
+                continue
+              fi
+              nv="${d##*/}"
+              pp="$(sed -n 's/^@comment pkgpath=//p' "$d/+CONTENTS" | head -1)"
               pp="${pp%% *}"
               if [ -n "$pp" ]; then
-                printf '@depend %s:*:%s-*\n' "$pp" "$p" >> plist
+                printf '@depend %s:%s-*:%s\n' "$pp" "$p" "$nv" >> plist
               fi
             done
             printf 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)\n' > desc
