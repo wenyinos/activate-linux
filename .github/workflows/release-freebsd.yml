@@ -42,7 +42,7 @@ jobs:
           arch: ${{ matrix.arch }}
           sync: rsync
           prepare: |
-            pkg install -y gmake pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig
+            pkg install -y gmake pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig bzip2
           run: |
             set -e
             VERSION="$(cat pkg-version.txt)"
