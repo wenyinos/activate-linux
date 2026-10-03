@@ -3,13 +3,22 @@ name: Release AppImage
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   appimage:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
 
@@ -29,9 +38,18 @@ jobs:
         run: make appimage
 
       - name: Upload AppImage to release
+        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
-            activate-linux-x86_64.AppImage \
+          gh release upload "$TAG_NAME" \
+            activate-linux-${{ matrix.arch }}.AppImage \
             --clobber
+
+      - name: Upload artifact (manual test runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-${{ matrix.arch }}
+          path: activate-linux-${{ matrix.arch }}.AppImage

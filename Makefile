@@ -157,11 +157,13 @@ uninstall:
 	sudo $(RM) -f $(DESTDIR)$(MANDIR)/man1/activate-linux.1
 	sudo mandb -q
 
+APPIMAGE_ARCH := $(shell uname -m)
+
 appimage: $(BINARY)
-	curl -#L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-	chmod +x linuxdeploy-x86_64.AppImage
-	./linuxdeploy-x86_64.AppImage --appdir AppDir --executable ./$(BINARY) --desktop-file res/activate-linux.desktop --icon-file res/activate-linux.png --output appimage
-	mv Activate_Linux-*.AppImage $(BINARY)-x86_64.AppImage
+	curl -#L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(APPIMAGE_ARCH).AppImage
+	chmod +x linuxdeploy-$(APPIMAGE_ARCH).AppImage
+	./linuxdeploy-$(APPIMAGE_ARCH).AppImage --appdir AppDir --executable ./$(BINARY) --desktop-file res/activate-linux.desktop --icon-file res/activate-linux.png --output appimage
+	mv Activate_Linux-*.AppImage $(BINARY)-$(APPIMAGE_ARCH).AppImage
 
 clean:
 	@$(<<) "  RM\t" "$(BINARY)$(<<objects>>:obj/%=\\n\\t + %)"
