@@ -42,7 +42,7 @@ jobs:
           arch: ${{ matrix.arch }}
           sync: rsync
           prepare: |
-            pkg install -y gmake pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig bzip2
+            pkg install -y gmake gawk pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig bzip2
             cat > /usr/local/libdata/pkgconfig/bzip2.pc <<'EOF'
             prefix=/usr/local
             exec_prefix=${prefix}
@@ -70,6 +70,7 @@ jobs:
             version: "$VERSION"
             origin: misc/activate-linux
             comment: 'The "Activate Windows" watermark ported to Linux'
+            desc: 'The "Activate Windows" watermark ported to Linux with draggable overlay support (X11 / Wayland)'
             www: https://github.com/wenyinos/activate-linux
             maintainer: wenyinos@users.noreply.github.com
             categories: [misc]
@@ -92,7 +93,7 @@ jobs:
             share/applications/activate-linux.desktop
             share/icons/hicolor/128x128/apps/activate-linux.png
             EOF
-            pkg create -M manifest.ucl -f plist -r stage -o .
+            pkg create -M manifest.ucl -p plist -r stage -o .
             mv "activate-linux-${VERSION}.pkg" "activate-linux-${VERSION}-freebsd-${{ matrix.arch }}.pkg"
             pkg add "./activate-linux-${VERSION}-freebsd-${{ matrix.arch }}.pkg"
             activate-linux -h >/dev/null
