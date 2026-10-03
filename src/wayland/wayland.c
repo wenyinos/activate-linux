@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#ifdef __linux__
 #include <linux/input-event-codes.h>
+#elif defined(__FreeBSD__)
+#include <dev/evdev/input-event-codes.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 #include <wayland-client.h>

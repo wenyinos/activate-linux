@@ -1,0 +1,102 @@
+name: Release FreeBSD pkg
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pkg:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+          - arch: aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')"
+          fi
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9A-Za-z._-]+$'; then
+            echo "invalid version string"
+            exit 1
+          fi
+          echo "$VERSION" > pkg-version.txt
+
+      - name: Build pkg in FreeBSD VM
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.3'
+          arch: ${{ matrix.arch }}
+          sync: rsync
+          prepare: |
+            pkg install -y gmake pkgconf cairo pango wayland wayland-protocols libX11 libXext libXfixes libXinerama libXrandr libconfig
+          run: |
+            set -e
+            VERSION="$(cat pkg-version.txt)"
+            gmake BINARY=activate-linux
+            ./activate-linux -h >/dev/null
+            mkdir -p stage/usr/local/bin stage/usr/local/share/man/man1 stage/usr/local/share/applications stage/usr/local/share/icons/hicolor/128x128/apps
+            install -m755 activate-linux stage/usr/local/bin/
+            install -m644 activate-linux.1 stage/usr/local/share/man/man1/
+            install -m644 res/activate-linux.desktop stage/usr/local/share/applications/
+            install -m644 res/activate-linux.png stage/usr/local/share/icons/hicolor/128x128/apps/
+            cat > manifest.ucl <<EOF
+            name: activate-linux
+            version: "$VERSION"
+            origin: misc/activate-linux
+            comment: 'The "Activate Windows" watermark ported to Linux'
+            www: https://github.com/wenyinos/activate-linux
+            maintainer: wenyinos@users.noreply.github.com
+            categories: [misc]
+            licenses: [GPLv3]
+            deps: {
+              cairo: {origin: "graphics/cairo", version: "1.16.0"},
+              pango: {origin: "x11-toolkits/pango", version: "1.46.0"},
+              wayland: {origin: "graphics/wayland", version: "1.21.0"},
+              libX11: {origin: "x11/libX11", version: "1.6.9"},
+              libXext: {origin: "x11/libXext", version: "1.3.4"},
+              libXfixes: {origin: "x11/libXfixes", version: "5.0.3"},
+              libXinerama: {origin: "x11/libXinerama", version: "1.1.4"},
+              libXrandr: {origin: "x11/libXrandr", version: "1.5.2"},
+              libconfig: {origin: "devel/libconfig", version: "1.7.0"}
+            }
+            EOF
+            cat > plist <<EOF
+            bin/activate-linux
+            share/man/man1/activate-linux.1
+            share/applications/activate-linux.desktop
+            share/icons/hicolor/128x128/apps/activate-linux.png
+            EOF
+            pkg create -M manifest.ucl -f plist -r stage -o .
+            mv "activate-linux-${VERSION}.pkg" "activate-linux-${VERSION}-freebsd-${{ matrix.arch }}.pkg"
+            pkg add "./activate-linux-${VERSION}-freebsd-${{ matrix.arch }}.pkg"
+            activate-linux -h >/dev/null
+            pkg delete -y activate-linux
+            echo "=== FreeBSD pkg built, installed, smoke-tested and removed ==="
+
+      - name: Upload artifact (manual test runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.arch }}
+          path: activate-linux-*-freebsd-*.pkg
+
+      - name: Upload to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG_NAME" activate-linux-*-freebsd-*.pkg --clobber
