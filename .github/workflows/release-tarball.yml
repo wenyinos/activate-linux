@@ -21,6 +21,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build (RHEL 8 baseline container)
         run: |
@@ -42,6 +44,9 @@ jobs:
       - name: Package
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')"
+          fi
           if ! printf '%s' "$VERSION" | grep -Eq '^[0-9A-Za-z._-]+$'; then
             echo "invalid version string"
             exit 1
